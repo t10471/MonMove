@@ -8,7 +8,7 @@ class MenuBarAppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             if let sysImage = NSImage(systemSymbolName: "display.2", accessibilityDescription: "Display Window Mover") {
-                sysImage.isTemplate = true // Auto adapts to light/dark menu bar mode
+                sysImage.isTemplate = true
                 button.image = sysImage
             } else {
                 button.title = "🖥"
@@ -45,7 +45,8 @@ class MenuBarAppDelegate: NSObject, NSApplicationDelegate {
         
         for disp in displays {
             let count = windows.filter { $0.displayIndex == disp.index }.count
-            let dispItem = NSMenuItem(title: "モニター \(disp.index): \(disp.name) (\(count) 件)", action: nil, keyEquivalent: "")
+            let primaryTag = disp.isPrimary ? " (⭐ メイン)" : ""
+            let dispItem = NSMenuItem(title: "モニター \(disp.index): \(disp.name)\(primaryTag) (\(count) 件)", action: nil, keyEquivalent: "")
             dispItem.isEnabled = false
             menu.addItem(dispItem)
         }
@@ -53,7 +54,7 @@ class MenuBarAppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
         
         if displays.count >= 2 {
-            // Actions for 2 or more displays
+            // Section 1: Window movement
             for i in 0..<displays.count {
                 for j in 0..<displays.count where i != j {
                     let moveItem = NSMenuItem(
@@ -90,6 +91,25 @@ class MenuBarAppDelegate: NSObject, NSApplicationDelegate {
                 moveAllItem.representedObject = d.index
                 menu.addItem(moveAllItem)
             }
+            
+            menu.addItem(NSMenuItem.separator())
+            
+            // Section 2: Set primary display
+            let setPrimaryHeader = NSMenuItem(title: "⚙️ メインモニター切り替え:", action: nil, keyEquivalent: "")
+            setPrimaryHeader.isEnabled = false
+            menu.addItem(setPrimaryHeader)
+            
+            for disp in displays {
+                let primaryItem = NSMenuItem(
+                    title: disp.isPrimary ? "  ✓ Display \(disp.index) (現在のメイン)" : "  ⭐ Display \(disp.index) をメインモニターに設定",
+                    action: #selector(setPrimaryDisplayTarget(_:)),
+                    keyEquivalent: ""
+                )
+                primaryItem.target = self
+                primaryItem.representedObject = disp.index
+                primaryItem.isEnabled = !disp.isPrimary
+                menu.addItem(primaryItem)
+            }
         } else {
             let singleItem = NSMenuItem(title: "※ サブモニターが接続されていません", action: nil, keyEquivalent: "")
             singleItem.isEnabled = false
@@ -121,6 +141,12 @@ class MenuBarAppDelegate: NSObject, NSApplicationDelegate {
     @objc func moveAllToTarget(_ sender: NSMenuItem) {
         guard let target = sender.representedObject as? Int else { return }
         _ = manager.moveAllWindowsTo(targetIndex: target)
+        rebuildMenu()
+    }
+    
+    @objc func setPrimaryDisplayTarget(_ sender: NSMenuItem) {
+        guard let target = sender.representedObject as? Int else { return }
+        _ = manager.setPrimaryDisplay(targetIndex: target)
         rebuildMenu()
     }
     

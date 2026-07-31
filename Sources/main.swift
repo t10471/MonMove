@@ -15,6 +15,8 @@ func printHelp() {
       monmove move-all <dst>                       (省略形) 全ウィンドウを <dst> へ集約
       monmove swap --display1 <d1> --display2 <d2>  <d1> と <d2> のウィンドウを相互に入れ替え
       monmove swap <d1> <d2>                       (省略形) <d1> と <d2> のウィンドウを相互入れ替え
+      monmove set-primary <dst>                    <dst> モニターをメインモニターに設定
+      monmove primary <dst>                        (省略形) <dst> をメインモニターに設定
       monmove check-permission                     アクセシビリティ権限の状態を確認・要求
       monmove menu / --gui                         メニューバー常駐アプリモードで起動
       monmove help                                 ヘルプメッセージの表示
@@ -24,6 +26,7 @@ func printHelp() {
       monmove move 0 1
       monmove move-all 0
       monmove swap 0 1
+      monmove set-primary 1
       monmove menu
     """)
 }
@@ -68,7 +71,37 @@ if !manager.isAccessibilityGranted() {
     exit(1)
 }
 
-// 2. List Command
+// Helper to parse single int
+func parseOneInt(args: [String]) -> Int? {
+    for i in 2..<args.count {
+        if args[i] == "--to" || args[i] == "-t" || args[i] == "--display" || args[i] == "-d" {
+            if i + 1 < args.count, let v = Int(args[i + 1]) { return v }
+        } else if let v = Int(args[i]) {
+            return v
+        }
+    }
+    return nil
+}
+
+// 2. Set Primary Display Command
+if command == "set-primary" || command == "setprimary" || command == "primary" {
+    guard let target = parseOneInt(args: args) else {
+        print("エラー: メインモニターの番号指定が不正です。 (例: monmove set-primary 1)")
+        exit(1)
+    }
+    
+    print("⚙️ Display \(target) をメインモニターに設定中...")
+    let success = manager.setPrimaryDisplay(targetIndex: target)
+    if success {
+        print("✨ 完了: Display \(target) をメインモニターに設定しました！")
+        exit(0)
+    } else {
+        print("❌ エラー: メインモニターの設定に失敗しました。指定したモニター番号が存在するか確認してください。")
+        exit(1)
+    }
+}
+
+// 3. List Command
 if command == "list" || command == "ls" {
     let displays = manager.getDisplays()
     let windows = manager.getAllWindows(displays: displays)
@@ -77,7 +110,8 @@ if command == "list" || command == "ls" {
     print("--------------------------------------------------")
     for disp in displays {
         let dispWins = windows.filter { $0.displayIndex == disp.index }
-        print("  [Display \(disp.index)] '\(disp.name)'")
+        let primaryStr = disp.isPrimary ? " (⭐ メイン)" : ""
+        print("  [Display \(disp.index)] '\(disp.name)'\(primaryStr)")
         print("     解像度 (Resolution): \(Int(disp.nsFrame.width))x\(Int(disp.nsFrame.height))")
         print("     位置 (Bounds): \(disp.cgFrame)")
         print("     ウィンドウ数 (Window count): \(dispWins.count) 件\n")
@@ -113,18 +147,7 @@ func parseTwoInts(args: [String]) -> (Int, Int)? {
     return nil
 }
 
-func parseOneInt(args: [String]) -> Int? {
-    for i in 2..<args.count {
-        if args[i] == "--to" || args[i] == "-t" || args[i] == "--display" || args[i] == "-d" {
-            if i + 1 < args.count, let v = Int(args[i + 1]) { return v }
-        } else if let v = Int(args[i]) {
-            return v
-        }
-    }
-    return nil
-}
-
-// 3. Move Command
+// 4. Move Command
 if command == "move" || command == "mv" {
     guard let (src, dst) = parseTwoInts(args: args) else {
         print("エラー: モニター番号の指定が不正です。 (例: monmove move 0 1)")
@@ -137,7 +160,7 @@ if command == "move" || command == "mv" {
     exit(0)
 }
 
-// 4. Move All Command
+// 5. Move All Command
 if command == "move-all" || command == "moveall" {
     guard let target = parseOneInt(args: args) else {
         print("エラー: 移動先モニター番号の指定が不正です。 (例: monmove move-all 0)")
@@ -150,7 +173,7 @@ if command == "move-all" || command == "moveall" {
     exit(0)
 }
 
-// 5. Swap Command
+// 6. Swap Command
 if command == "swap" {
     guard let (disp1, disp2) = parseTwoInts(args: args) else {
         print("エラー: モニター番号の指定が不正です。 (例: monmove swap 0 1)")

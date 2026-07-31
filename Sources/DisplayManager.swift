@@ -4,6 +4,8 @@ import ApplicationServices
 public struct DisplayInfo {
     public let index: Int
     public let name: String
+    public let displayID: CGDirectDisplayID
+    public let isPrimary: Bool
     public let nsFrame: CGRect
     public let cgFrame: CGRect
     public let visibleCgFrame: CGRect
@@ -46,8 +48,12 @@ public class DisplayManager {
     public func getDisplays() -> [DisplayInfo] {
         guard let primaryScreen = NSScreen.screens.first else { return [] }
         let primaryHeight = primaryScreen.frame.height
+        let mainDisplayID = CGMainDisplayID()
         
-        return NSScreen.screens.enumerated().map { (index, screen) in
+        return NSScreen.screens.enumerated().compactMap { (index, screen) in
+            guard let displayID = screen.deviceDescription[NSDeviceDescriptionKey(rawValue: "NSScreenNumber")] as? CGDirectDisplayID else {
+                return nil
+            }
             let nsFrame = screen.frame
             let nsVis = screen.visibleFrame
             
@@ -58,15 +64,49 @@ public class DisplayManager {
             let visCgY = primaryHeight - (nsVis.origin.y + nsVis.size.height)
             let visibleCgFrame = CGRect(x: nsVis.origin.x, y: visCgY, width: nsVis.size.width, height: nsVis.size.height)
             
+            let isPrimary = (displayID == mainDisplayID)
             let name = screen.localizedName
+            
             return DisplayInfo(
                 index: index,
                 name: name,
+                displayID: displayID,
+                isPrimary: isPrimary,
                 nsFrame: nsFrame,
                 cgFrame: cgFrame,
                 visibleCgFrame: visibleCgFrame
             )
         }
+    }
+    
+    /// Change the main (primary) display to the target display index
+    public func setPrimaryDisplay(targetIndex: Int) -> Bool {
+        let displays = getDisplays()
+        guard let targetDisp = displays.first(where: { $0.index == targetIndex }) else {
+            return false
+        }
+        
+        let deltaX = -Int32(targetDisp.cgFrame.origin.x)
+        let deltaY = -Int32(targetDisp.cgFrame.origin.y)
+        
+        var configRef: CGDisplayConfigRef?
+        let beginErr = CGBeginDisplayConfiguration(&configRef)
+        guard beginErr == .success, let config = configRef else {
+            return false
+        }
+        
+        for disp in displays {
+            let newX = Int32(disp.cgFrame.origin.x) + deltaX
+            let newY = Int32(disp.cgFrame.origin.y) + deltaY
+            let configErr = CGConfigureDisplayOrigin(config, disp.displayID, newX, newY)
+            if configErr != .success {
+                CGCancelDisplayConfiguration(config)
+                return false
+            }
+        }
+        
+        let completeErr = CGCompleteDisplayConfiguration(config, .forSession)
+        return completeErr == .success
     }
     
     /// Get all visible GUI windows across all running applications
