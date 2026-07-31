@@ -1,0 +1,27 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# macOS Application Bundles & Executables
+*.app/
+*.dmg
+*.pkg
+
+# Xcode & Workspace (If opened in Xcode)
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserdata/
+DerivedData/
+
+# macOS OS-generated System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Logs & Temporary files
+*.log
