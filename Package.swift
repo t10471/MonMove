@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "DisplayWindowMover",
+    name: "MonMove",
     platforms: [
         .macOS(.v12)
     ],

@@ -5,17 +5,23 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
 echo "========================================================"
-echo "🖥  DisplayWindowMover - インストールスクリプト"
+echo "🖥  MonMove - インストールスクリプト"
 echo "========================================================"
 
 # 1. ビルド & アプリバンドル生成
 echo "\n📦 アプリケーションをビルド中..."
 ./build_app.sh
 
-APP_NAME="DisplayWindowMover.app"
+APP_NAME="MonMove.app"
 SOURCE_APP="${DIR}/${APP_NAME}"
 TARGET_DIR="/Applications"
 TARGET_APP="${TARGET_DIR}/${APP_NAME}"
+
+# 旧アプリ名のクリーンアップ
+if [ -d "/Applications/DisplayWindowMover.app" ]; then
+    echo "🧹 旧アプリケーション DisplayWindowMover.app を削除中..."
+    rm -rf "/Applications/DisplayWindowMover.app"
+fi
 
 # 2. /Applications ディレクトリへの配置
 echo "\n🚀 ${TARGET_DIR} へ ${APP_NAME} を配置します..."
@@ -52,7 +58,7 @@ echo "\n========================================================"
 echo "🎉 インストールが完了しました！"
 echo "========================================================"
 echo "・ Launchpad または Finder の「アプリケーション」フォルダから"
-echo "  「DisplayWindowMover」を起動できます。"
+echo "  「MonMove」を起動できます。"
 echo "・ コマンドで直接起動する場合:"
-echo "  open /Applications/DisplayWindowMover.app"
+echo "  open /Applications/MonMove.app"
 echo "========================================================"

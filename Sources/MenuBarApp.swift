@@ -29,7 +29,7 @@ class MenuBarAppDelegate: NSObject, NSApplicationDelegate {
         let displays = manager.getDisplays()
         let isTrusted = manager.isAccessibilityGranted()
         
-        let headerItem = NSMenuItem(title: "🖥 Monitor Window Mover", action: nil, keyEquivalent: "")
+        let headerItem = NSMenuItem(title: "🖥 MonMove", action: nil, keyEquivalent: "")
         headerItem.isEnabled = false
         menu.addItem(headerItem)
         

@@ -34,11 +34,11 @@ cd ~/wk/DisplayWindowMover
 ```
 
 ### 1. メニューバーアプリの起動
-Finder や Launchpad の「アプリケーション」フォルダから **DisplayWindowMover** を起動してください。  
+Finder や Launchpad の「アプリケーション」フォルダから **MonMove** を起動してください。  
 またはターミナルから以下を実行します:
 
 ```bash
-open /Applications/DisplayWindowMover.app
+open /Applications/MonMove.app
 ```
 
 ### 2. CLI ツール (`monmove`) のインストール (任意)

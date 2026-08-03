@@ -7,7 +7,7 @@ cd "$DIR"
 echo "🔨 Building release binary..."
 swift build -c release
 
-APP_NAME="DisplayWindowMover"
+APP_NAME="MonMove"
 BUILD_BIN=".build/release/monmove"
 APP_BUNDLE="${APP_NAME}.app"
 
@@ -24,11 +24,11 @@ cat << 'EOF' > "${APP_BUNDLE}/Contents/Info.plist"
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>DisplayWindowMover</string>
+    <string>MonMove</string>
     <key>CFBundleIdentifier</key>
-    <string>com.user.DisplayWindowMover</string>
+    <string>com.user.MonMove</string>
     <key>CFBundleName</key>
-    <string>DisplayWindowMover</string>
+    <string>MonMove</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
